@@ -20,6 +20,11 @@ class Caltech(VisionDataset):
 
         self.split = split # This defines the split you are going to use
                            # (split files are called 'train.txt' and 'test.txt')
+            
+        classes, classes_idx = self.get_classes()
+        self.classes = classes
+        self.casses_to_idx = classes_idx
+        self.images = self.get_samples(classes_idx)
 
         '''
         - Here you should implement the logic for reading the splits files and accessing elements
@@ -29,7 +34,29 @@ class Caltech(VisionDataset):
           through the index
         - Labels should start from 0, so for Caltech you will have lables 0...100 (excluding the background class) 
         '''
+    #get classes and respective idxs
+    def get_classes(self):
+        classes = os.listdir(self.root)
+        classes.remove('BACKGROUND_Google')
+        classes.sort()
+        classes_to_idx = {classes[i]: i for i in range(len(classes))}
+        return classes, classes_to_idx
+    
+    def get_samples(self, classes_to_idx):
+        to_read = self.split+'.txt'
+        base_dir = self.root.split('/')[0]
+        data_split = base_dir + '/' + to_read
+        images = []
 
+        with open(data_split, 'r') as f:
+          lines = f.readlines()
+          for line in lines:
+            line = str(line).rstrip()
+            label = line.split('/')[0]
+            if label != 'BACKGROUND_Google':
+                images.append((self.root+'/'+line, classes_to_idx[label]))
+        return images
+    
     def __getitem__(self, index):
         '''
         __getitem__ should access an element through its index
@@ -40,9 +67,11 @@ class Caltech(VisionDataset):
             tuple: (sample, target) where target is class_index of the target class.
         '''
 
-        image, label = ... # Provide a way to access image and label via index
-                           # Image should be a PIL Image
-                           # label can be int
+        # Provide a way to access image and label via index
+         # Image should be a PIL Image
+         # label can be int
+        image, label = self.images[index] 
+        image = pil_loader(image)
 
         # Applies preprocessing when accessing the image
         if self.transform is not None:
@@ -55,5 +84,5 @@ class Caltech(VisionDataset):
         The __len__ method returns the length of the dataset
         It is mandatory, as this is used by several other components
         '''
-        length = ... # Provide a way to get the length (number of elements) of the dataset
+        length = len(self.images) # Provide a way to get the length (number of elements) of the dataset
         return length
