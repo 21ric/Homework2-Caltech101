@@ -25,6 +25,7 @@ class Caltech(VisionDataset):
         self.classes = classes
         self.casses_to_idx = classes_idx
         self.images = self.get_samples(classes_idx)
+        self.target = [i[1] for i in self.images]
 
         '''
         - Here you should implement the logic for reading the splits files and accessing elements
